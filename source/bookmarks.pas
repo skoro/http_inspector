@@ -521,11 +521,8 @@ end;
 
 procedure TBookmark.UpdateRequest(ANewRequest: TRequestObject);
 begin
-  if Assigned(FRequest) and not FLocked then
-  begin
-    FRequest.Free;
+  if not FLocked then
     FRequest := ANewRequest;
-  end;
 end;
 
 { TBookmarkManager }

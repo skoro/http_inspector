@@ -353,7 +353,12 @@ begin
     FBookmark.Request.Url := edUrl.Text;
   FBookmark.Locked := cbLock.Checked;
   if cbCopy.Checked then
-    AddBookmark
+  begin
+    // When copying the bookmark update the request data on the origin bookmark.
+    if BookmarkManager.CurrentBookmark = FBookmark then
+      FBookmark.UpdateRequest(FRequestObject);
+    AddBookmark;
+  end
   else
     BookmarkManager.UpdateBookmark(FBookmark, BookmarkName, FolderPath);
 end;
