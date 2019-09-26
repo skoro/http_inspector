@@ -292,7 +292,7 @@ begin
   edName.Text := FBookmark.Name;
   edUrl.Text := FBookmark.Request.UrlPath;
   cbLock.Checked := FBookmark.Locked;
-  cbCopy.Visible := True;
+  cbCopy.Visible := BookmarkManager.CurrentBookmark = FBookmark;
   // Select the bookmark node by default.
   srcNode := FBookmarkManager.FindNode(FBookmark);
   if not Assigned(srcNode) then
@@ -355,8 +355,7 @@ begin
   if cbCopy.Checked then
   begin
     // When copying the bookmark update the request data on the origin bookmark.
-    if BookmarkManager.CurrentBookmark = FBookmark then
-      FBookmark.UpdateRequest(FRequestObject);
+    FBookmark.UpdateRequest(FRequestObject);
     AddBookmark;
   end
   else
