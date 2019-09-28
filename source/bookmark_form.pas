@@ -357,17 +357,15 @@ begin
   FBookmark.Locked := cbLock.Checked;
   if cbCopy.Checked then
   begin
-    // When copying the bookmark update the request data on the origin bookmark.
-    if FBookmarkManager.CurrentBookmark = FBookmark then
-    begin
-      FBookmark.UpdateRequest(FRequestObject);
-      AddBookmark(FRequestObject);
-    end
-    else begin
-      RO := TRequestObject.Create;
+    RO := TRequestObject.Create;
+    // Copying the current bookmark.
+    if BookmarkManager.CurrentBookmark = FBookmark then
+      // RequestObject will be deleted in main.pas (BookmarkEditorShow)
+      // so we must copying the original one when adding a new node.
+      RO.CopyFrom(RequestObject)
+    else
       RO.CopyFrom(FBookmark.Request);
-      AddBookmark(RO);
-    end;
+    AddBookmark(RO);
   end
   else
     BookmarkManager.UpdateBookmark(FBookmark, BookmarkName, FolderPath);
