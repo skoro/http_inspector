@@ -21,6 +21,7 @@ type
     FValue: string;
   protected
   public
+    procedure CopyFrom(Src: TRequestParamItem);
   published
     property Enabled: boolean read FEnabled write FEnabled;
     property Name: string read FName write FName;
@@ -43,6 +44,7 @@ type
     procedure SetItems(Index: integer; AValue: TRequestParamItem);
   public
     constructor Create;
+    procedure CopyFrom(Src: TRequestParamList);
     function Add: TRequestParamItem;
     function GetEnumerator: TRequestParamsEnumerator;
     property Items[Index: integer]: TRequestParamItem read GetItems write SetItems; default;
@@ -57,6 +59,8 @@ type
   TFormParamItem = class(TRequestParamItem)
   private
     FElemType: TFormTypeItem;
+  public
+    procedure CopyFrom(Src: TFormParamItem);
   published
     property ElemType: TFormTypeItem read FElemType write FElemType;
   end;
@@ -77,6 +81,7 @@ type
     procedure SetItems(Index: integer; AValue: TFormParamItem);
   public
     constructor Create;
+    procedure CopyFrom(Src: TFormParamList);
     function GetEnumerator: TFormParamsEnumerator;
     function Add: TFormParamItem;
     property Items[Index: integer]: TFormParamItem read GetItems write SetItems;
@@ -88,6 +93,8 @@ type
   private
     FLogin: string;
     FPassword: string;
+  public
+    procedure CopyFrom(Src: TAuthBasic);
   published
     property Login: string read FLogin write FLogin;
     property Password: string read FPassword write FPassword;
@@ -101,6 +108,7 @@ type
     FToken: string;
   public
     constructor Create;
+    procedure CopyFrom(Src: TAuthBearer);
   published
     property Prefix: string read FPrefix write FPrefix;
     property Token: string read FToken write FToken;
@@ -131,6 +139,7 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+    procedure CopyFrom(Src: TRequestObject);
     procedure SetCollectionFromGrid(Grid: TStringGrid; coll: TCollection);
     procedure SetCollectionToGrid(coll: TCollection; Grid: TStringGrid);
     procedure SetFormToGrid(FormGrid: TStringGrid);
@@ -167,6 +176,31 @@ implementation
 
 uses strutils, URIParser, fpjsonrtti;
 
+{ TFormParamItem }
+
+procedure TFormParamItem.CopyFrom(Src: TFormParamItem);
+begin
+  inherited CopyFrom(Src);
+  ElemType := Src.ElemType;
+end;
+
+{ TRequestParamItem }
+
+procedure TRequestParamItem.CopyFrom(Src: TRequestParamItem);
+begin
+  Enabled := Src.Enabled;
+  Name := Src.Name;
+  Value := Src.Value;
+end;
+
+{ TAuthBasic }
+
+procedure TAuthBasic.CopyFrom(Src: TAuthBasic);
+begin
+  FLogin := Src.Login;
+  FPassword := Src.Password;
+end;
+
 { TFormParamsEnumerator }
 
 function TFormParamsEnumerator.GetCurrent: TFormParamItem;
@@ -188,6 +222,12 @@ begin
   FPrefix := 'Bearer';
 end;
 
+procedure TAuthBearer.CopyFrom(Src: TAuthBearer);
+begin
+  FPrefix := Src.Prefix;
+  FToken := Src.Token;
+end;
+
 { TFormParamList }
 
 function TFormParamList.GetItems(Index: integer): TFormParamItem;
@@ -203,6 +243,16 @@ end;
 constructor TFormParamList.Create;
 begin
   inherited Create(TFormParamItem);
+end;
+
+procedure TFormParamList.CopyFrom(Src: TFormParamList);
+var
+  fpi: TFormParamItem;
+begin
+  Clear;
+  for fpi in Src do
+    with Add do
+      CopyFrom(fpi);
 end;
 
 function TFormParamList.GetEnumerator: TFormParamsEnumerator;
@@ -230,6 +280,16 @@ end;
 constructor TRequestParamList.Create;
 begin
   inherited Create(TRequestParamItem);
+end;
+
+procedure TRequestParamList.CopyFrom(Src: TRequestParamList);
+var
+  rpi: TRequestParamItem;
+begin
+  Clear;
+  for rpi in Src do
+    with Add do
+      CopyFrom(rpi);
 end;
 
 function TRequestParamList.Add: TRequestParamItem;
@@ -311,6 +371,23 @@ begin
   // Please notice, there is no free for ResponseInfo. It should be
   // freed manual.
   inherited Destroy;
+end;
+
+procedure TRequestObject.CopyFrom(Src: TRequestObject);
+begin
+  FMethod := Src.Method;
+  FUrl := Src.Url;
+  FBody := Src.Body;
+  FJson := Src.Json;
+  FHeaders.CopyFrom(Src.Headers);
+  FCookies.CopyFrom(Src.Cookies);
+  FParams.CopyFrom(Src.Params);
+  FForm.CopyFrom(Src.Form);
+  FAuthBasic.CopyFrom(Src.AuthBasic);
+  FAuthBearer.CopyFrom(Src.AuthBearer);
+  FAuthType := Src.AuthType;
+  FDataType := Src.DataType;
+  FNotes := Src.Notes;
 end;
 
 procedure TRequestObject.SetCollectionToGrid(coll: TCollection;

@@ -62,7 +62,7 @@ type
     function ShowModal(BM: TBookmark; RO: TRequestObject): TModalResult; overload;
     procedure PrepareEditForm; virtual;
     procedure PrepareAddForm; virtual;
-    procedure AddBookmark; virtual;
+    procedure AddBookmark(RO: TRequestObject); virtual;
     procedure UpdateBookmark; virtual;
     procedure DeleteBookmark; virtual;
 
@@ -94,7 +94,7 @@ begin
 
   try
     if IsNewBookmark then
-      AddBookmark
+      AddBookmark(FRequestObject)
     else
       UpdateBookmark;
   except
@@ -292,7 +292,7 @@ begin
   edName.Text := FBookmark.Name;
   edUrl.Text := FBookmark.Request.UrlPath;
   cbLock.Checked := FBookmark.Locked;
-  cbCopy.Visible := BookmarkManager.CurrentBookmark = FBookmark;
+  cbCopy.Visible := True;
   // Select the bookmark node by default.
   srcNode := FBookmarkManager.FindNode(FBookmark);
   if not Assigned(srcNode) then
@@ -327,17 +327,18 @@ begin
   end;
 end;
 
-procedure TBookmarkForm.AddBookmark;
+procedure TBookmarkForm.AddBookmark(RO: TRequestObject);
 var
   BM: TBookmark;
   NewNode: TTreeNode;
 begin
   try
     BM := TBookmark.Create(BookmarkName);
-    BM.Request := RequestObject;
+    BM.Request := RO;
     BM.Locked := cbLock.Checked;
     NewNode := BookmarkManager.AddBookmark(BM, FolderPath);
-    BookmarkManager.CurrentNode := NewNode;
+    if not Assigned(BookmarkManager.CurrentBookmark) then
+      BookmarkManager.CurrentNode := NewNode;
   except
     on E: Exception do begin
       BM.Request := NIL; // Don't let free the RequestObject !
@@ -348,6 +349,8 @@ begin
 end;
 
 procedure TBookmarkForm.UpdateBookmark;
+var
+  RO: TRequestObject;
 begin
   if Length(Trim(edUrl.Text)) <> 0 then
     FBookmark.Request.Url := edUrl.Text;
@@ -355,8 +358,16 @@ begin
   if cbCopy.Checked then
   begin
     // When copying the bookmark update the request data on the origin bookmark.
-    FBookmark.UpdateRequest(FRequestObject);
-    AddBookmark;
+    if FBookmarkManager.CurrentBookmark = FBookmark then
+    begin
+      FBookmark.UpdateRequest(FRequestObject);
+      AddBookmark(FRequestObject);
+    end
+    else begin
+      RO := TRequestObject.Create;
+      RO.CopyFrom(FBookmark.Request);
+      AddBookmark(RO);
+    end;
   end
   else
     BookmarkManager.UpdateBookmark(FBookmark, BookmarkName, FolderPath);
