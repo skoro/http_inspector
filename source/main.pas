@@ -1467,11 +1467,14 @@ begin
     with FBookManager do
       if CurrentBookmark = NIL then begin
         WriteString('selBookmark', '');
-        try
-          RO := CreateRequestObject;
-          WriteString('currentRequest', RO.ToJson);
-        finally
-          RO.Free;
+        if Trim(cbUrl.Text) <> '' then
+        begin
+          try
+            RO := CreateRequestObject;
+            WriteString('currentRequest', RO.ToJson);
+          finally
+            RO.Free;
+          end;
         end;
       end
       else begin
