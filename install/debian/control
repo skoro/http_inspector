@@ -1,7 +1,7 @@
 Package: http-inspector
 Version: @version@
 Depends: @depends@
-Maintainer: Skorobogatko Alexei <skorobogatko.alexei@gmail.com>
+Maintainer: Skorobogatko Alexei <skorobogatko.oleksii@gmail.com>
 Description: The application is for sending and analyzing HTTP requests.
  This application allows you to send an http request and view the response.
  It's like curl but with GUI.
