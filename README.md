@@ -1,3 +1,6 @@
+This repository is deprecated! Please use ![Rio](https://github.com/skoro/rio)
+----
+
 ## HTTP request inspector
 
 A crossplatform desktop tool for inspecting http requests.
